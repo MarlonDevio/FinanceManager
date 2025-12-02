@@ -1,36 +1,46 @@
 ﻿using ServiceContracts;
 using ServiceContracts.DTO;
+using Services;
 
 namespace CRUDTests;
 
 public class CountriesServiceTests
 {
-    private ICountriesService _countriesService;
-    private CountryAddRequest _countryAddRequest;
+    private ICountriesService _countriesService = new CountriesService();
 
     [SetUp]
     public void Setup()
     {
-        _countriesService = new CountriesService();
-        _countryAddRequest = new CountryAddRequest
-        {
-            CountryName = "Spain"
-        };
     }
 
     [Test]
-    public void Test1()
+    public void AddCountry_NullCountry_ShouldThrowArgumentNullException()
     {
-
-        var result = _countriesService.AddCountry(_countryAddRequest);
-        Assert.That(result, Is.Not.Null);
+        CountryAddRequest? request = null;
+        Assert.Throws<ArgumentNullException>(() => _countriesService.AddCountry(request));
     }
-}
 
-public class CountriesService : ICountriesService
-{
-    public CountryResponse AddCountry(CountryAddRequest? countryAddRequest)
+    [Test]
+    public void AddCountry_NullCountryName_ShouldThrowArgumentException()
     {
-        return new CountryResponse();
+        CountryAddRequest request = new CountryAddRequest()
+        {
+            CountryName = null
+        };
+
+        Assert.Throws<ArgumentException>(() => _countriesService.AddCountry(request));
+    }
+
+    
+    [TestCase("Turkey", "turkey")]
+    public void AddCountry_DuplicateName_ShouldThrowArgumentException(string value, string value2)
+    {
+        CountryAddRequest r1 = new CountryAddRequest { CountryName = value2 };
+        CountryAddRequest r2 = new CountryAddRequest { CountryName = value };
+        Assert.Throws<ArgumentException>(() =>
+        {
+            _countriesService.AddCountry(r1);
+            _countriesService.AddCountry(r2);
+        });
     }
 }
